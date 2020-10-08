@@ -1,6 +1,8 @@
 package com.example.jetpoll.ui.login
 
 import android.content.Intent
+import android.security.NetworkSecurityPolicy
+import android.util.Log
 import androidx.activity.OnBackPressedDispatcher
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Icon
@@ -31,32 +33,56 @@ import com.example.jetpoll.navigation.BackDispatcherAmbient
 import com.example.jetpoll.navigation.Destination
 import com.example.jetpoll.navigation.Navigator
 import com.example.jetpoll.presentation.AuthViewModel
-import com.example.jetpoll.ui.createpoll.CreatePollMain
 import com.example.jetpoll.ui.register.RegisterMain
 import com.example.jetpoll.ui.typography
 import com.example.jetpoll.utils.ProvideDisplayInsets
 import com.example.jetpoll.utils.ShowProgress
 import com.example.jetpoll.utils.showMessage
 import com.example.jetpoll.vo.Result
-
+import com.google.android.gms.tasks.Task
+import com.google.firebase.functions.FirebaseFunctions
 
 @Composable
-fun LoginMain(viewModel: AuthViewModel,backDispatcher:OnBackPressedDispatcher){
+fun LoginMain(viewModel: AuthViewModel, backDispatcher: OnBackPressedDispatcher) {
     val navigator: Navigator<Destination> = rememberSavedInstanceState(
             saver = Navigator.saver(backDispatcher)
     ) {
         Navigator(Destination.Login, backDispatcher)
     }
     val actions = remember(navigator) { Actions(navigator) }
-
+    NetworkSecurityPolicy.getInstance().isCleartextTrafficPermitted("10.0.2.2")
+    var functions: FirebaseFunctions = FirebaseFunctions.getInstance()
     Providers(BackDispatcherAmbient provides backDispatcher) {
         ProvideDisplayInsets {
             Crossfade(navigator.current) { destination ->
                 when (destination) {
                     is Destination.Login -> {
-                        LoginHome(viewModel = viewModel,onRegisterClick = actions.register)
+
+
+                        LoginHome(viewModel = viewModel, onRegisterClick = actions.register)
                     }
                     is Destination.Register -> {
+                        fun addMessage(text: String): Task<String> {
+                            // Create the arguments to the callable function.
+                            val data = hashMapOf(
+                                    "text" to text,
+                                    "push" to true
+                            )
+
+                            return functions
+                                    .getHttpsCallable("sayHello")
+                                    .call(data)
+                                    .continueWith { task ->
+                                        // This continuation runs on either success or failure, but if the task
+                                        // has failed then result will throw an Exception which will be
+                                        // propagated down.
+                                        val result = task.result?.data as String
+
+                                        Log.d("TAG", result)
+                                        result
+                                    }
+                        }
+                        addMessage("polls")
                         RegisterMain(viewModel = viewModel)
                     }
                 }
@@ -66,10 +92,10 @@ fun LoginMain(viewModel: AuthViewModel,backDispatcher:OnBackPressedDispatcher){
 }
 
 @Composable
-private fun LoginHome(viewModel: AuthViewModel,onRegisterClick:() -> Unit){
+private fun LoginHome(viewModel: AuthViewModel, onRegisterClick: () -> Unit) {
     val context = ContextAmbient.current
     val loginResult: Result<Boolean> by viewModel.getLoginResult.observeAsState(Result.Success(false))
-    when(loginResult){
+    when (loginResult) {
         is Result.Loading -> {
             ShowProgress()
         }
@@ -79,62 +105,62 @@ private fun LoginHome(viewModel: AuthViewModel,onRegisterClick:() -> Unit){
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(intent)
             } else {
-                LoginScreen(viewModel,onRegisterClick)
+                LoginScreen(viewModel, onRegisterClick)
             }
         }
         is Result.Failure -> {
-            LoginScreen(viewModel = viewModel,onRegisterClick)
+            LoginScreen(viewModel = viewModel, onRegisterClick)
             showMessage(context, (loginResult as Result.Failure<Boolean>).exception.message!!)
         }
     }
 }
 
 @Composable
-private fun LoginScreen(viewModel: AuthViewModel,onRegisterClick: () -> Unit){
+private fun LoginScreen(viewModel: AuthViewModel, onRegisterClick: () -> Unit) {
     val username = remember { mutableStateOf(TextFieldValue("")) }
     val password = remember { mutableStateOf(TextFieldValue("")) }
-    Column(modifier = Modifier.fillMaxWidth().padding(16.dp)){
+    Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
         Text(
-            "Login",
-            style = typography.h5,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(
-                bottom = 8.dp
-            )
+                "Login",
+                style = typography.h5,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(
+                        bottom = 8.dp
+                )
         )
-        Column{
-            Card(elevation = 8.dp){
+        Column {
+            Card(elevation = 8.dp) {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        modifier = Modifier.fillMaxWidth().padding(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     TextField(leadingIcon = { Icon(Icons.Filled.Person) },
-                        modifier = Modifier.fillMaxWidth().padding(
-                            bottom = 8.dp
-                        ),
-                        value = username.value,
-                        onValueChange = { username.value = it },
-                        label = {
-                            Text(
-                                "Username"
-                            )
-                        })
+                            modifier = Modifier.fillMaxWidth().padding(
+                                    bottom = 8.dp
+                            ),
+                            value = username.value,
+                            onValueChange = { username.value = it },
+                            label = {
+                                Text(
+                                        "Username"
+                                )
+                            })
                     TextField(
-                        leadingIcon = { Icon(Icons.Filled.Lock) },
-                        modifier = Modifier.fillMaxWidth(),
-                        value = password.value,
-                        onValueChange = { password.value = it },
-                        label = {
-                            Text(
-                                "Password"
-                            )
-                        })
+                            leadingIcon = { Icon(Icons.Filled.Lock) },
+                            modifier = Modifier.fillMaxWidth(),
+                            value = password.value,
+                            onValueChange = { password.value = it },
+                            label = {
+                                Text(
+                                        "Password"
+                                )
+                            })
                     Button(modifier = Modifier.padding(bottom = 8.dp, top = 8.dp), onClick = {
                         viewModel.setLoginCredentials(
-                            AuthCredentials(
-                                username = username.value.text,
-                                password = password.value.text
-                            )
+                                AuthCredentials(
+                                        username = username.value.text,
+                                        password = password.value.text
+                                )
                         )
                     }) {
                         Text("Login")
@@ -150,7 +176,7 @@ private fun LoginScreen(viewModel: AuthViewModel,onRegisterClick: () -> Unit){
 
 @Preview(showBackground = true)
 @Composable
-private fun PreviewLoginScreen(){
-   //TODO mock viewmodel to render preview
-   //LoginScreen()
+private fun PreviewLoginScreen() {
+    //TODO mock viewmodel to render preview
+    //LoginScreen()
 }

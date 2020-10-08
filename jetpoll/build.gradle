@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.jetpoll"
-        minSdkVersion 21
+        minSdkVersion 24
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
@@ -83,6 +83,7 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:25.11.0')
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-firestore-ktx'
+    implementation 'com.google.firebase:firebase-functions'
 
     implementation "androidx.activity:activity-ktx:1.1.0"
     implementation "dev.chrisbanes.accompanist:accompanist-coil:0.2.2"

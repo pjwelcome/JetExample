@@ -1,11 +1,16 @@
 {
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
   "emulators": {
     "functions": {
       "port": 5001
     },
     "firestore": {
-      "enabled": true,
-      "port": 4001
+      "enabled": true
     },
     "ui": {
       "enabled": true

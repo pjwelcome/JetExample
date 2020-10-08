@@ -7,11 +7,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.ui.platform.setContent
 import com.example.jetpoll.data.DataSource
 import com.example.jetpoll.domain.RepoImpl
-import com.example.jetpoll.ui.home.PollMain
 import com.example.jetpoll.presentation.PollViewModel
 import com.example.jetpoll.presentation.PollViewModelFactory
+import com.example.jetpoll.ui.home.PollMain
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.FirebaseFirestoreSettings
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.functions.FirebaseFunctions
+import com.google.firebase.ktx.Firebase
 
 /**
  * [EN]
@@ -32,13 +36,23 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setUpFirebaseEmulators()
         currentUser = FirebaseAuth.getInstance().currentUser
         setContent {
-            if(currentUser != null){
-                PollMain(viewModel = viewModel,backDispatcher = onBackPressedDispatcher)
-            }else{
-                startActivity(Intent(this,LoginActivity::class.java))
+            if (currentUser != null) {
+                PollMain(viewModel = viewModel, backDispatcher = onBackPressedDispatcher)
+            } else {
+                startActivity(Intent(this, LoginActivity::class.java))
             }
         }
+    }
+
+    private fun setUpFirebaseEmulators() {
+        val host = "10.0.2.2"
+        Firebase.firestore.useEmulator(host, 8080)
+        Firebase.firestore.firestoreSettings = FirebaseFirestoreSettings.Builder().setPersistenceEnabled(false)
+                .build()
+        var functions: FirebaseFunctions = FirebaseFunctions.getInstance()
+        functions.useEmulator(host, 5001)
     }
 }

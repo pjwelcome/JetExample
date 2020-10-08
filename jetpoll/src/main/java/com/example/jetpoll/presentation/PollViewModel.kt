@@ -18,20 +18,21 @@ class PollViewModel(private val repo: Repo) : ViewModel() {
                 emit(Result.Success(it))
             }
         } catch (e: Exception) {
-           // emit(Result.Failure(e))
+            // emit(Result.Failure(e))
         }
     }
 
-    fun setPoll(poll: Poll){
+    fun setPoll(poll: Poll) {
         createPollMutable.value = poll
     }
+
     val createPoll = createPollMutable.switchMap {
         liveData(Dispatchers.IO) {
             emit(Result.Loading())
             try {
                 emit(repo.createPoll(it))
             } catch (e: Exception) {
-               // emit(Result.Failure(e))
+                // emit(Result.Failure(e))
             }
         }
     }
