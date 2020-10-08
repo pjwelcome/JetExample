@@ -5,6 +5,7 @@ import com.example.jetpoll.data.model.Poll
 import com.example.jetpoll.domain.Repo
 import com.example.jetpoll.vo.Result
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
 
 class PollViewModel(private val repo: Repo) : ViewModel() {
 
@@ -13,9 +14,11 @@ class PollViewModel(private val repo: Repo) : ViewModel() {
     val fetchAllPolls = liveData(Dispatchers.IO) {
         emit(Result.Loading())
         try {
-            emit(repo.getAllPolls())
+            repo.getPolls().collect {
+                emit(Result.Success(it))
+            }
         } catch (e: Exception) {
-            emit(Result.Failure(e))
+           // emit(Result.Failure(e))
         }
     }
 
@@ -28,12 +31,10 @@ class PollViewModel(private val repo: Repo) : ViewModel() {
             try {
                 emit(repo.createPoll(it))
             } catch (e: Exception) {
-                emit(Result.Failure(e))
+               // emit(Result.Failure(e))
             }
         }
     }
-
-
 }
 
 class PollViewModelFactory(private val repo: Repo) : ViewModelProvider.Factory {

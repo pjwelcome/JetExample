@@ -5,11 +5,50 @@ import com.example.jetpoll.data.model.Option
 import com.example.jetpoll.data.model.Poll
 import com.example.jetpoll.vo.Result
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.firestoreSettings
+import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.sendBlocking
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flowViaChannel
 import kotlinx.coroutines.tasks.await
 
 class DataSource {
+    private val firestore = Firebase.firestore
+    private val pollReference = firestore.collection("polls")
 
-    private val pollReference = FirebaseFirestore.getInstance().collection("polls")
+    @ExperimentalCoroutinesApi
+    fun getpolls () : Flow<List<Poll>> {
+        firestore.firestoreSettings = firestoreSettings {
+            host = "http://10.0.2.2:4001"
+            isSslEnabled = false
+            isPersistenceEnabled = false
+        }
+        return callbackFlow {
+            pollReference.addSnapshotListener { data, error ->
+                if (error != null) {
+                    close(error)
+                } else {
+                    if (data != null) {
+                        val messages = data.toObjects(Poll::class.java)
+                        offer(messages)
+                    } else {
+                        close(CancellationException("No data received"))
+                    }
+                }
+            }
+           awaitClose  {
+                cancel()
+            }
+        }
+    }
 
     suspend fun getAllPolls(): Result<List<Poll>> {
         val pollList = mutableListOf<Poll>()

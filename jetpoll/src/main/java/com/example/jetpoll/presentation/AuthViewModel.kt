@@ -26,7 +26,7 @@ class AuthViewModel(val repo: LoginRepo):ViewModel() {
             try{
                 emit(repo.login(authCredentials))
             }catch (e:Exception){
-                emit(Result.Failure(e))
+                //emit(Result.Failure(e))
             }
         }
     }
@@ -37,7 +37,7 @@ class AuthViewModel(val repo: LoginRepo):ViewModel() {
             try{
                 emit(repo.register(authCredentials))
             }catch (e:Exception){
-                emit(Result.Failure(e))
+                //emit(Result.Failure(e))
             }
         }
     }

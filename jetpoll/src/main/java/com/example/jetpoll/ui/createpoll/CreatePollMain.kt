@@ -24,6 +24,8 @@ import com.example.jetpoll.utils.ShowError
 import com.example.jetpoll.utils.ShowProgress
 import com.example.jetpoll.utils.showMessage
 import com.example.jetpoll.vo.Result
+import com.google.firebase.auth.FirebaseAuth
+import java.util.*
 
 @Composable
 fun CreatePollMain(viewModel:PollViewModel){
@@ -85,7 +87,8 @@ private fun CreatePollScreen(viewModel:PollViewModel){
                         val secondAnswer = answer2.value.text
                         val thirdAnswer = answer3.value.text
                         if(question.isNotEmpty() && firstAnswer.isNotEmpty() && secondAnswer.isNotEmpty() && thirdAnswer.isNotEmpty()){
-                            viewModel.setPoll(Poll("gastsail", "", question, options = listOf(Option(name = firstAnswer), Option(name = secondAnswer), Option(name = thirdAnswer))))
+                            print(question)
+                            viewModel.setPoll(Poll(UUID.randomUUID().toString(),userName =  FirebaseAuth.getInstance().currentUser?.displayName!!, question = question, options = listOf(Option(name = firstAnswer), Option(name = secondAnswer), Option(name = thirdAnswer))))
                         }else{
                             showMessage(context,"Some of the fields are empty")
                         }

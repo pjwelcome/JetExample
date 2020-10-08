@@ -21,7 +21,7 @@ fun PollHome(viewModel: PollViewModel, onCreatePollClick: () -> Unit){
         is Result.Success -> {
             PollScreen(
                     pollList = (pollResult as Result.Success<List<Poll>>).data,
-                    user = User("Gaston", "https://avatars2.githubusercontent.com/u/24615408?s=460&u=8a985792aa795ada276b4d567baba1c732ab02fb&v=4"),
+                    user = User("PJApples", "https://cdn.pixabay.com/photo/2015/04/19/08/32/marguerite-729510__340.jpg"),
                     onCreatePollClick = onCreatePollClick)
         }
         is Result.Failure -> ShowError((pollResult as Result.Failure<List<Poll>>).exception)
